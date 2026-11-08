@@ -154,7 +154,6 @@ export class Environment {
       })
     )
     const width = 10
-    const level = SITE.padHeight + 0.04
     const longSide = SITE.halfX * 2 + width * 2
     const shortSide = SITE.halfZ * 2 + width * 2
 
@@ -176,7 +175,5 @@ export class Environment {
     approach.position.set(SITE.halfX + width / 2, 0.04, 450)
     approach.receiveShadow = true
     this.group.add(approach)
-
-    this.roadLevel = level
   }
 }

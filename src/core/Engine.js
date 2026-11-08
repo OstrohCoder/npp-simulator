@@ -1,6 +1,6 @@
 import {
   ACESFilmicToneMapping,
-  PCFSoftShadowMap,
+  PCFShadowMap,
   PerspectiveCamera,
   SRGBColorSpace,
   Scene,
@@ -28,7 +28,7 @@ export class Engine {
     this.renderer.toneMapping = ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 0.9
     this.renderer.shadowMap.enabled = true
-    this.renderer.shadowMap.type = PCFSoftShadowMap
+    this.renderer.shadowMap.type = PCFShadowMap
 
     this.scene = new Scene()
     this.camera = new PerspectiveCamera(48, 1, 0.5, 4000)
