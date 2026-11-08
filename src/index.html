@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Симулятор АЕС</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene"></canvas>
+
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="topbar__mark"></span>
+        <span class="topbar__name">АЕС · Блок 1</span>
+      </div>
+      <div class="topbar__status" id="plant-status" data-state="normal">Штатний режим</div>
+      <div class="topbar__right">
+        <div class="topbar__clock" id="sim-clock">00:00:00</div>
+        <button class="topbar__help" id="help-button" type="button" aria-label="Підказка">?</button>
+      </div>
+    </header>
+
+    <aside class="panel panel--controls" id="control-panel"></aside>
+    <aside class="panel panel--gauges" id="gauges"></aside>
+    <aside class="panel panel--alarms" id="alarm-panel"></aside>
+
+    <div class="overlay" id="overlay" hidden></div>
+
+    <div class="loader" id="loader">
+      <div class="loader__ring"></div>
+      <div class="loader__text">Ініціалізація систем</div>
+    </div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
