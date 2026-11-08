@@ -268,6 +268,9 @@ export class Reactor {
   #updateDamage() {
     const stress = inverseLerp(REACTOR.fuelTempWarning, REACTOR.fuelTempMeltdown, this.fuelTemp)
     this.fuelDamage = Math.max(this.fuelDamage, stress)
-    if (this.fuelTemp >= REACTOR.fuelTempMeltdown) this.meltdown = true
+    if (this.fuelTemp >= REACTOR.fuelTempMeltdown && !this.meltdown) {
+      this.meltdown = true
+      bus.emit(EVENTS.MELTDOWN)
+    }
   }
 }

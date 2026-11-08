@@ -24,6 +24,7 @@ const RESET_CONFIRM_LABEL = 'Підтвердити?'
 const RESET_ARM_TIME = 3000
 const TOAST_TIME = 4500
 const TOAST_LIMIT = 4
+const MELTDOWN_DIALOG_DELAY = 8000
 
 function chip(label, onClick, modifier = '') {
   return el('button', { type: 'button', class: `chip ${modifier}`.trim(), onClick }, label)
@@ -41,6 +42,7 @@ export class Overlay {
     this.clockNode = root.querySelector('#sim-clock')
     this.meltdownShown = false
     this.resetTimer = 0
+    this.meltdownTimer = 0
     this.viewButtons = new Map()
     this.speedButtons = new Map()
     this.unsubscribers = []
@@ -48,7 +50,8 @@ export class Overlay {
     this.toasts = el('div', { class: 'toasts' })
     this.#buildToolbar()
     this.#buildTimebar()
-    root.append(this.toolbar, this.timebar, this.toasts)
+    this.flash = el('div', { class: 'flash' })
+    root.append(this.toolbar, this.timebar, this.toasts, this.flash)
     this.#bind()
   }
 
@@ -73,10 +76,9 @@ export class Overlay {
     const melted = snapshot.reactor.meltdown
     if (melted && !this.meltdownShown) {
       this.meltdownShown = true
-      this.#showMeltdown(snapshot)
+      this.meltdownTimer = setTimeout(() => this.#showMeltdown(snapshot), MELTDOWN_DIALOG_DELAY)
     } else if (!melted && this.meltdownShown) {
-      this.meltdownShown = false
-      this.dialog.hidden = true
+      this.#cancelMeltdown()
     }
   }
 
@@ -85,6 +87,7 @@ export class Overlay {
     clearTimeout(this.resetTimer)
     this.unsubscribers.forEach((off) => off())
     this.unsubscribers = []
+    clearTimeout(this.meltdownTimer)
   }
 
   handleKey = (event) => {
@@ -143,10 +146,8 @@ export class Overlay {
         this.#toast(`Турбіну відключено: ${formatReason(reason)}`, 'critical')
       ),
       bus.on(EVENTS.INCIDENT_STARTED, ({ title }) => this.#toast(`Збій: ${title}`, 'warning')),
-      bus.on(EVENTS.PLANT_RESET, () => {
-        this.meltdownShown = false
-        this.dialog.hidden = true
-      })
+      bus.on(EVENTS.PLANT_RESET, () => this.#cancelMeltdown()),
+      bus.on(EVENTS.EXPLOSION, () => this.#flash())
     ]
   }
 
@@ -229,5 +230,17 @@ export class Overlay {
 
     this.dialog.replaceChildren(card)
     this.dialog.hidden = false
+  }
+
+  #cancelMeltdown() {
+    clearTimeout(this.meltdownTimer)
+    this.meltdownShown = false
+    this.dialog.hidden = true
+  }
+
+  #flash() {
+    this.flash.classList.remove('is-flashing')
+    void this.flash.offsetWidth
+    this.flash.classList.add('is-flashing')
   }
 }

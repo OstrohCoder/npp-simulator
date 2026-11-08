@@ -80,4 +80,6 @@ export const EVENTS = Object.freeze({
   ALARM_ACK: 'alarm:ack',
   PLANT_RESET: 'plant:reset',
   NOTICE: 'ui:notice',
+  MELTDOWN: 'reactor:meltdown',
+  EXPLOSION: 'scene:explosion'
 })

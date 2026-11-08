@@ -8,6 +8,8 @@ import { TurbineHall } from './buildings/TurbineHall.js'
 import { CoolingTower } from './buildings/CoolingTower.js'
 import { ControlRoom } from './buildings/ControlRoom.js'
 import { PlantPipes } from './buildings/Pipes.js'
+import { ContainmentBreach } from './effects/ContainmentBreach.js'
+import { AccidentEffects } from './effects/AccidentEffects.js'
 
 export class World {
   constructor(engine) {
@@ -75,5 +77,13 @@ export class World {
       this.add(`tower${index}`, new CoolingTower(resources, this.materials, place))
     })
     this.add('pipes', new PlantPipes(resources))
+    this.add('breach', new ContainmentBreach(this.engine, this.get('reactor')))
+    this.add(
+      'emissions',
+      new AccidentEffects(this.engine, {
+        turbineHall: this.get('turbineHall'),
+        controlRoom: this.get('controlRoom')
+      })
+    )
   }
 }

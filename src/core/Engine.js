@@ -10,7 +10,10 @@ import {
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Resources } from './Resources.js'
 import { VIEWS } from '../scene/layout.js'
-import { smoothstep } from '../utils/math.js'
+import { randomRange, smoothstep } from '../utils/math.js'
+
+const SHAKE_DECAY = 0.6
+const SHAKE_RANGE = 2.4
 
 export class Engine {
   constructor(canvas) {
@@ -31,6 +34,8 @@ export class Engine {
     this.camera = new PerspectiveCamera(48, 1, 0.5, 4000)
     this.resources = new Resources(this.renderer)
     this.transition = null
+    this.shakeEnergy = 0
+    this.shakeOffset = new Vector3()
     this.view = null
 
     this.controls = new OrbitControls(this.camera, canvas)
@@ -84,10 +89,26 @@ export class Engine {
     this.camera.updateProjectionMatrix()
   }
 
+  shake(strength) {
+    this.shakeEnergy = Math.max(this.shakeEnergy, Math.min(1, strength))
+  }
+
   render(delta) {
     this.#advanceTransition(delta)
     this.controls.update(delta)
+
+    const jitter = this.#jitter(delta)
+    this.camera.position.add(jitter)
     this.renderer.render(this.scene, this.camera)
+    this.camera.position.sub(jitter)
+  }
+
+  #jitter(delta) {
+    this.shakeEnergy = Math.max(0, this.shakeEnergy - delta * SHAKE_DECAY)
+    const magnitude = this.shakeEnergy * this.shakeEnergy * SHAKE_RANGE
+    return this.shakeOffset
+      .set(randomRange(-1, 1), randomRange(-1, 1), randomRange(-1, 1))
+      .multiplyScalar(magnitude)
   }
 
   dispose() {

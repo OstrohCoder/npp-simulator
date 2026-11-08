@@ -1,4 +1,5 @@
-import { ALARM_LEVEL } from '../simulation/constants.js'
+import { ALARM_LEVEL, EVENTS } from '../simulation/constants.js'
+import { bus } from '../utils/events.js'
 import { storage } from '../utils/storage.js'
 
 const STORAGE_KEY = 'npp-simulator:sound'
@@ -43,6 +44,7 @@ export class AlarmSound {
     this.unlock = this.unlock.bind(this)
     window.addEventListener('pointerdown', this.unlock)
     window.addEventListener('keydown', this.unlock)
+    this.unsubscribe = bus.on(EVENTS.EXPLOSION, () => this.#explode())
   }
 
   unlock() {
@@ -82,9 +84,52 @@ export class AlarmSound {
   }
 
   destroy() {
+    this.unsubscribe()
     window.removeEventListener('pointerdown', this.unlock)
     window.removeEventListener('keydown', this.unlock)
     this.context?.close()
+  }
+
+  #explode() {
+    if (!this.enabled || !this.context || this.context.state !== 'running') return
+    const context = this.context
+    const now = context.currentTime
+    const length = 3.4
+
+    const output = context.createGain()
+    output.gain.value = 0.5
+    output.connect(context.destination)
+
+    const buffer = context.createBuffer(1, Math.floor(context.sampleRate * length), context.sampleRate)
+    const samples = buffer.getChannelData(0)
+    for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1
+
+    const noise = context.createBufferSource()
+    noise.buffer = buffer
+    const filter = context.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.setValueAtTime(2800, now)
+    filter.frequency.exponentialRampToValueAtTime(80, now + length)
+    const body = context.createGain()
+    body.gain.setValueAtTime(SILENT, now)
+    body.gain.exponentialRampToValueAtTime(1, now + 0.02)
+    body.gain.exponentialRampToValueAtTime(SILENT, now + length)
+    noise.connect(filter).connect(body).connect(output)
+    noise.onended = () => output.disconnect()
+    noise.start(now)
+    noise.stop(now + length)
+
+    const thump = context.createOscillator()
+    const thumpGain = context.createGain()
+    thump.type = 'sine'
+    thump.frequency.setValueAtTime(74, now)
+    thump.frequency.exponentialRampToValueAtTime(26, now + 1.8)
+    thumpGain.gain.setValueAtTime(SILENT, now)
+    thumpGain.gain.exponentialRampToValueAtTime(1, now + 0.03)
+    thumpGain.gain.exponentialRampToValueAtTime(SILENT, now + 2)
+    thump.connect(thumpGain).connect(output)
+    thump.start(now)
+    thump.stop(now + 2.1)
   }
 
   #play(pattern, time) {

@@ -165,6 +165,7 @@ export class ReactorBuilding {
       this.shellMaterial
     )
     dome.position.y = WALL_HEIGHT
+    this.dome = dome
 
     this.group.add(wall, dome)
 

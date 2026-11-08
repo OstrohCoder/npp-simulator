@@ -116,6 +116,11 @@ export class SteamPlume {
     attributes.aLife.needsUpdate = true
   }
 
+  reset() {
+    this.lives.fill(1)
+    this.budget = 0
+  }
+
   #spawn(index, offset) {
     const angle = Math.random() * Math.PI * 2
     const distance = Math.sqrt(Math.random()) * this.radius

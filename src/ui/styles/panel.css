@@ -727,6 +727,28 @@
   flex: 1;
 }
 
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  background: #fff3de;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flash.is-flashing {
+  animation: flash 1.6s ease-out;
+}
+
+@keyframes flash {
+  from {
+    opacity: 0.95;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
