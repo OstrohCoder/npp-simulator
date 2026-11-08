@@ -49,7 +49,7 @@ export class World {
 
   update(delta, elapsed, snapshot) {
     this.lighting.update(delta, snapshot.state)
-    this.environment.update(this.lighting)
+    this.environment.update(this.lighting, elapsed)
 
     this.engine.renderer.getDrawingBufferSize(this.drawingSize)
     const fov = (this.engine.camera.fov * Math.PI) / 180

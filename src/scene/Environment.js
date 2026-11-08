@@ -3,22 +3,16 @@ import {
   BoxGeometry,
   CircleGeometry,
   Color,
-  ConeGeometry,
-  CylinderGeometry,
   Fog,
   Group,
-  InstancedMesh,
-  Matrix4,
   Mesh,
   MeshStandardMaterial,
-  Object3D,
-  Quaternion,
   ShaderMaterial,
-  SphereGeometry,
-  Vector3
+  SphereGeometry
 } from 'three'
 import { SITE } from './layout.js'
 import { createRandom } from '../utils/math.js'
+import { Forest } from './Forest.js'
 
 const SKY_VERTEX = `
 varying vec3 vDirection;
@@ -90,17 +84,20 @@ export class Environment {
     this.#buildGround()
     this.#buildPad()
     this.#buildRoads()
-    this.#buildForest()
+
+    this.forest = new Forest()
+    this.group.add(this.forest.group)
 
     scene.fog = new Fog(0xc3d6e6, 320, 1500)
     scene.add(this.group)
   }
 
-  update(lighting) {
+  update(lighting, elapsed) {
     const uniforms = this.sky.material.uniforms
     uniforms.topColor.value.copy(lighting.sky)
     uniforms.horizonColor.value.copy(lighting.horizon)
     this.scene.fog.color.copy(lighting.horizon)
+    this.forest.update(elapsed)
   }
 
   #buildSky() {
@@ -181,56 +178,5 @@ export class Environment {
     this.group.add(approach)
 
     this.roadLevel = level
-  }
-
-  #buildForest() {
-    const random = createRandom(101)
-    const count = 700
-    const trunks = new InstancedMesh(
-      this.resources.track(new CylinderGeometry(0.45, 0.7, 4, 6)),
-      this.resources.track(new MeshStandardMaterial({ color: 0x4a3626, roughness: 1 })),
-      count
-    )
-    const crowns = new InstancedMesh(
-      this.resources.track(new ConeGeometry(4.2, 11, 7)),
-      this.resources.track(new MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 })),
-      count
-    )
-
-    const dummy = new Object3D()
-    const tint = new Color()
-    const margin = 40
-    let placed = 0
-
-    while (placed < count) {
-      const angle = random() * Math.PI * 2
-      const radius = 170 + Math.pow(random(), 0.7) * 900
-      const x = Math.cos(angle) * radius
-      const z = Math.sin(angle) * radius
-      const insideX = Math.abs(x) < SITE.halfX + margin
-      const insideZ = Math.abs(z) < SITE.halfZ + margin
-      const onApproach = x > SITE.halfX - 8 && x < SITE.halfX + 30 && z > 0
-      if ((insideX && insideZ) || onApproach) continue
-
-      const scale = 0.7 + random() * 0.9
-      dummy.position.set(x, 2 * scale, z)
-      dummy.rotation.set(0, random() * Math.PI * 2, 0)
-      dummy.scale.setScalar(scale)
-      dummy.updateMatrix()
-      trunks.setMatrixAt(placed, dummy.matrix)
-
-      dummy.position.y = (4 + 5.5) * scale
-      dummy.updateMatrix()
-      crowns.setMatrixAt(placed, dummy.matrix)
-
-      tint.setHSL(0.27 + random() * 0.06, 0.38 + random() * 0.2, 0.2 + random() * 0.1)
-      crowns.setColorAt(placed, tint)
-      placed++
-    }
-
-    trunks.instanceMatrix.needsUpdate = true
-    crowns.instanceMatrix.needsUpdate = true
-    crowns.instanceColor.needsUpdate = true
-    this.group.add(trunks, crowns)
   }
 }
